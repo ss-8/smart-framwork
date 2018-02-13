@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:aop="http://www.springframework.org/schema/aop"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xsi:schemaLocation="
+        http://www.springframework.org/schema/beans 
+        http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+        http://www.springframework.org/schema/aop 
+        http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+    <!--配置接口实现类和增强器实例，也可以使用@Component配置实例， 并用 <context:component-scan base-package="">扫描 -->
+    <bean id="helloImpl" class="proxyDemo.staticProxy.HelloImpl"/>
+    <bean id="helloAroundAdvice" class="proxyDemo.spring.aop.HelloAroundAdvice"/>
+    <bean id="helloThrowAdvice" class="proxyDemo.spring.aop.HelloThrowAdvice"/>
+    <bean id="helloIntroAdvice" class="proxyDemo.spring.aop.HelloIntroAdvice"/>
+    <!-- 配置一个代理工厂：实现对接口实现类的增强处理，所以不需要修改原接口实现类，就可以实现，在实现类所有方法前后所共同的的固定操作 -->
+    <bean id="helloProxy" class="org.springframework.aop.framework.ProxyFactoryBean">
+        <property name="interfaces" value="proxyDemo.staticProxy.Hello"/><!-- 需要代理的接口 -->
+        <property name="target" ref="helloImpl"></property><!-- 接口实现类 -->
+        <property name="interceptorNames">
+            <list>
+                <value>helloAroundAdvice</value>
+                <value>helloThrowAdvice</value>
+            </list>
+        </property>
+    </bean>
+    <!-- 配置一个引用增强类的代理工厂:实现目标类的增前处理：增加增强接口，引入增强类实现该接口即可，所以不需要修改目标类，就可以让目标类拥有该接口中的方法 -->
+    <bean id="helloProxy2" class="org.springframework.aop.framework.ProxyFactoryBean">
+        <property name="interfaces" value="proxyDemo.spring.aop.Apology"/><!-- 增强接口 -->
+        <property name="target" ref="helloImpl"></property><!-- 目标类 -->
+        <property name="interceptorNames">
+            <list>
+                <value>helloIntroAdvice</value><!-- 引入增强类 -->
+            </list>
+        </property>
+        <property name="proxyTargetClass" value="true"/><!-- 代理目标类，默认是false,使用JDK动态代理，如果是true使用CGLib动态代理,这里需要使用CGLib -->
+    </bean>
+    <!-- 配置切面-正则切面 -->
+    <bean id="helloAdvicer" class="org.springframework.aop.support.RegexpMethodPointcutAdvisor">
+        <property name="advice" ref="helloProxy"></property>
+        <property name="pattern" value="proxyDemo.staticProxy.HelloImpl.good.*"></property>
+    </bean>
+    <!--  -->
+    <bean id="helloProxy2" class="org.springframework.aop.framework.ProxyFactoryBean">
+        <property name="target" ref="helloImpl"></property><!-- 目标类 -->
+        <property name="interceptorNames" value="helloAdvicer"></property><!-- 切面 -->
+        <property name="ProxyTargetClass" value="true"></property><!-- 代理目标类 -->
+    </bean>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+</beans>
